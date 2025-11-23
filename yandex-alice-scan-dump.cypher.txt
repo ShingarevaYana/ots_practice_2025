@@ -1,0 +1,116 @@
+// Файл: yandex-alice-scan-dump.cypher
+
+// Очистка базы (опционально)
+MATCH (n) DETACH DELETE n;
+
+// Создание пользователя
+CREATE (u:User {id: 'user1', name: 'Пользователь Яндекс'});
+
+// Создание причин
+CREATE (r:Reason {id: 'reason1', name: 'Необходимость сканировать документ'});
+
+// Создание шагов сценария
+CREATE (s1:Step {id: 'step1', name: 'Запуск Алисы'});
+CREATE (s2:Step {id: 'step2', name: 'Нажатие кнопки Сканировать'});
+CREATE (s3:Step {id: 'step3', name: 'Просмотр экрана сканирования'});
+CREATE (s4:Step {id: 'step4', name: 'Наведение камеры на документ'});
+CREATE (s5:Step {id: 'step5', name: 'Подтверждение сканирования'});
+CREATE (s6:Step {id: 'step6', name: 'Сохранение документа'});
+
+// Создание действий
+CREATE (a1:Click:Action {id: 'action1', name: 'Нажатие кнопки запуска', actionType: 'click'});
+CREATE (a2:Click:Action {id: 'action2', name: 'Нажатие кнопки сканирования', actionType: 'click'});
+CREATE (a3:View:Action {id: 'action3', name: 'Просмотр экрана сканирования', actionType: 'view'});
+CREATE (a4:View:Action {id: 'action4', name: 'Наведение камеры', actionType: 'view'});
+CREATE (a5:Click:Action {id: 'action5', name: 'Нажатие кнопки подтверждения', actionType: 'click'});
+CREATE (a6:Click:Action {id: 'action6', name: 'Нажатие кнопки сохранения', actionType: 'click'});
+
+// Создание элементов интерфейса
+CREATE (i1:Screen:Interface {id: 'interface1', name: 'Главный экран', codename: 'main_screen'});
+CREATE (i2:Button:Interface {id: 'interface2', name: 'Кнопка запуска Алисы', codename: 'start_btn'});
+CREATE (i3:Button:Interface {id: 'interface3', name: 'Кнопка Сканировать', codename: 'scan_btn'});
+CREATE (i4:Screen:Interface {id: 'interface4', name: 'Экран сканирования', codename: 'scan_screen'});
+CREATE (i5:Button:Interface {id: 'interface5', name: 'Кнопка подтверждения', codename: 'confirm_btn'});
+CREATE (i6:Button:Interface {id: 'interface6', name: 'Кнопка сохранения', codename: 'save_btn'});
+
+// Связи пользователя и причины
+MATCH (u:User {id: 'user1'}), (r:Reason {id: 'reason1'})
+CREATE (u)-[:HAS_STATE]->(r);
+
+// Связи причины и шагов
+MATCH (r:Reason {id: 'reason1'}), (s2:Step {id: 'step2'})
+CREATE (r)-[:IS_REASON_FOR]->(s2);
+
+// Последовательность шагов
+MATCH (s1:Step {id: 'step1'}), (s2:Step {id: 'step2'})
+CREATE (s1)-[:PRECEDES]->(s2);
+MATCH (s2:Step {id: 'step2'}), (s3:Step {id: 'step3'})
+CREATE (s2)-[:PRECEDES]->(s3);
+MATCH (s3:Step {id: 'step3'}), (s4:Step {id: 'step4'})
+CREATE (s3)-[:PRECEDES]->(s4);
+MATCH (s4:Step {id: 'step4'}), (s5:Step {id: 'step5'})
+CREATE (s4)-[:PRECEDES]->(s5);
+MATCH (s5:Step {id: 'step5'}), (s6:Step {id: 'step6'})
+CREATE (s5)-[:PRECEDES]->(s6);
+
+// Связи шагов и действий
+MATCH (s1:Step {id: 'step1'}), (a1:Action {id: 'action1'})
+CREATE (s1)-[:MATERIALIZES_AS]->(a1);
+MATCH (s2:Step {id: 'step2'}), (a2:Action {id: 'action2'})
+CREATE (s2)-[:MATERIALIZES_AS]->(a2);
+MATCH (s3:Step {id: 'step3'}), (a3:Action {id: 'action3'})
+CREATE (s3)-[:MATERIALIZES_AS]->(a3);
+MATCH (s4:Step {id: 'step4'}), (a4:Action {id: 'action4'})
+CREATE (s4)-[:MATERIALIZES_AS]->(a4);
+MATCH (s5:Step {id: 'step5'}), (a5:Action {id: 'action5'})
+CREATE (s5)-[:MATERIALIZES_AS]->(a5);
+MATCH (s6:Step {id: 'step6'}), (a6:Action {id: 'action6'})
+CREATE (s6)-[:MATERIALIZES_AS]->(a6);
+
+// Последовательность действий
+MATCH (a1:Action {id: 'action1'}), (a2:Action {id: 'action2'})
+CREATE (a1)-[:PRECEDES_ACTION]->(a2);
+MATCH (a2:Action {id: 'action2'}), (a3:Action {id: 'action3'})
+CREATE (a2)-[:PRECEDES_ACTION]->(a3);
+MATCH (a3:Action {id: 'action3'}), (a4:Action {id: 'action4'})
+CREATE (a3)-[:PRECEDES_ACTION]->(a4);
+MATCH (a4:Action {id: 'action4'}), (a5:Action {id: 'action5'})
+CREATE (a4)-[:PRECEDES_ACTION]->(a5);
+MATCH (a5:Action {id: 'action5'}), (a6:Action {id: 'action6'})
+CREATE (a5)-[:PRECEDES_ACTION]->(a6);
+
+// Связи действий и интерфейсов
+MATCH (a1:Action {id: 'action1'}), (i2:Interface {id: 'interface2'})
+CREATE (a1)-[:INTERACTS_WITH]->(i2);
+MATCH (a2:Action {id: 'action2'}), (i3:Interface {id: 'interface3'})
+CREATE (a2)-[:INTERACTS_WITH]->(i3);
+MATCH (a3:Action {id: 'action3'}), (i4:Interface {id: 'interface4'})
+CREATE (a3)-[:INTERACTS_WITH]->(i4);
+MATCH (a4:Action {id: 'action4'}), (i4:Interface {id: 'interface4'})
+CREATE (a4)-[:INTERACTS_WITH]->(i4);
+MATCH (a5:Action {id: 'action5'}), (i5:Interface {id: 'interface5'})
+CREATE (a5)-[:INTERACTS_WITH]->(i5);
+MATCH (a6:Action {id: 'action6'}), (i6:Interface {id: 'interface6'})
+CREATE (a6)-[:INTERACTS_WITH]->(i6);
+
+// Иерархия интерфейсов
+MATCH (i2:Interface {id: 'interface2'}), (i1:Interface {id: 'interface1'})
+CREATE (i2)-[:IS_PART_OF]->(i1);
+MATCH (i3:Interface {id: 'interface3'}), (i1:Interface {id: 'interface1'})
+CREATE (i3)-[:IS_PART_OF]->(i1);
+
+// Автоматическое создание событий
+MATCH (a:Action)-[:INTERACTS_WITH]->(i:Interface)
+CREATE (e:Event {id: 'event_' + a.id, name: i.codename + '_' + a.actionType, timestamp: timestamp()})
+CREATE (a)-[:TRIGGERS]->(e);
+
+// Создание статистики
+MATCH (i:Interface)<-[:INTERACTS_WITH]-(a:Action)-[:TRIGGERS]->(e:Event)
+WITH i, a.actionType AS action_type, count(e) AS event_count
+CREATE (stat:Statistics {
+    id: 'stat_' + i.id + '_' + action_type,
+    interface_name: i.name,
+    action_type: action_type,
+    event_count: event_count,
+    last_updated: timestamp()
+});
